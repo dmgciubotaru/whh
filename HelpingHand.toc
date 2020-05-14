@@ -1,0 +1,30 @@
+## Interface: 11304
+## Title: Helping Hand
+## Version: 0.1
+## DefaultState: enabled
+## Author: dmgciubotaru @ Twitch.com
+## SavedVariables: WHHDB
+
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceEvent-3.0\AceEvent-3.0.xml
+Libs\AceDB-3.0\AceDB-3.0.xml
+Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+Libs\AceLocale-3.0\AceLocale-3.0.xml
+Libs\AceGUI-3.0\AceGUI-3.0.xml
+Libs\AceConsole-3.0\AceConsole-3.0.xml
+Libs\AceConfig-3.0\AceConfig-3.0.xml
+
+modules\templates.xml
+
+modules\Options.lua
+modules\NotifList.lua
+
+tracker\PetTracker.lua
+tracker\BagTracker.lua
+tracker\AuraTracker.lua
+
+HelpingHand.lua
+
