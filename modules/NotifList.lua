@@ -4,6 +4,7 @@ WHHNotifList = {}
 do
 	local frame = nil
 	local notifications = {}
+	local hiddenMessages = {}
 	local itemFrames = {}
 	local options = {}
 	
@@ -12,8 +13,9 @@ do
 		local visible = 0
 		local hidden = 0
 		local items = {}
+		
 		for k,v in pairs(notifications) do
-			if v == true then 
+			if not hiddenMessages[k.text] then 
 				table.insert(items, k)
 				visible = visible + 1
 			else
@@ -24,11 +26,12 @@ do
 		-- Sort statuses
 		table.sort(items, function(a,b) return a.priority > b.priority end)
 		
+		-- Display notifications
 		for i=1,min(table.getn(items), options.maxCount) do
 			itemFrames[i].Title:SetText(items[i].text)
 			itemFrames[i]:Show()
 			itemFrames[i].ShowHide:SetScript("OnClick", function() 
-				notifications[items[i]]=false
+				hiddenMessages[items[i].text] = true
 				Update()
 			end)
 		end
@@ -58,9 +61,7 @@ do
 		end)
 		
 		frame.ShowHidden:SetScript("OnClick", function()
-			for k,v in pairs(notifications) do
-				notifications[k] = true
-			end
+			hiddenMessages = {}
 			Update()
 		end)
 		

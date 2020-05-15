@@ -2,6 +2,8 @@
 WHHOptions = {}
 
 do
+
+	-- Addon options
 	local defaults = {
 		char = {
 			petTracker = true,
@@ -12,8 +14,8 @@ do
 			},
 			auraTracker  = {
 				enabled = true,
-				combatAura = "",
-				groupAura = "",
+				priority = 70,
+				auraList = {},
 			},
 		},
 		global = {
@@ -25,11 +27,12 @@ do
 		},
 	}
 	
+	-- Addon ACE options
 	local function GetOptionPanel()
 		return {
 			type = "group",
-			name = "Notify Me",
-			desc = "Notify Me Options",
+			name = "Helping Hand",
+			desc = "Helping Hand Options",
 			args = {
 				general = {
 					type = "group",
@@ -49,7 +52,7 @@ do
 				},
 				bagTracker = {
 					type = "group",
-					name = "Bag tracker",
+					name = "Bag Tracker",
 					order = 1,
 					args = {
 						enable = {
@@ -101,33 +104,24 @@ do
 							get = function () return WHHOptions.char.auraTracker.enabled end,
 							set = function (info, value) 
 								WHHOptions.char.auraTracker.enabled = value 
-								WHHAuraTracker:Update()
+								WHHAuraTracker:CfgUpdate()
 							end,
 						},
-						combatAura = {
+						trackedAuras = {
 							type = "input",
-							name = "Combat Aura",
+							name = "Tracked Aura",
+							desc = "Add aura names to be traced.",
 							width = "full",
 							order = 1,
 							multiline = true,
-							get = function () return WHHOptions.char.auraTracker.combatAura end,
+							get = function () 
+								return ToCSV(WHHOptions.char.auraTracker.auraList)
+							end,
 							set = function (info, value) 
-								WHHOptions.char.auraTracker.combatAura = value 
-								WHHAuraTracker:Update()
+								WHHOptions.char.auraTracker.auraList = ParseCSV(value)
+								WHHAuraTracker:CfgUpdate()
 							end,
 						},
-						groupAura = {
-							type = "input",
-							name = "Group Aura",
-							width = "full",
-							order = 2,
-							multiline = true,
-							get = function () return WHHOptions.char.auraTracker.groupAura end,
-							set = function (info, value) 
-								WHHOptions.char.auraTracker.groupAura = value 
-								WHHAuraTracker:Update()
-							end,
-						}
 					}
 				}
 			}

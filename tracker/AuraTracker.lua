@@ -3,113 +3,96 @@ WHHAuraTracker = {}
 
 do
 	local frame = nil
+	local tracked = {}
 	local messages = {}
 	local options = nil
 	
-	local function GetCombatAura()
-		local counters = {}
-		for str in string.gmatch(options.combatAura, "([^\n]+)") do
-			counters[str] = true
-		end
-		return counters
-	end
-	
-	local function GetGroupAura()
-		local counters = {}
-		for str in string.gmatch(options.groupAura, "([^\n]+)") do
-			counters[str] = true
-		end
-		return counters
-	end
-	
-	local function GetUnitAuras(unit)
-		local idx = 1
-		local aura = {}
+	local function Update()
 		
-		while 1 do
-			name = UnitBuff(unit, idx)
-			if not name then 
-				break
-			end
-			aura[name] = true
-			idx = idx + 1
-		end
-		
-		return aura
-	end
-		
-
-	local function Update(self, event)
-	
-		-- Remove everything
-		for i, msg in ipairs(messages) do
+		-- Remove all messages
+		for i,msg in ipairs(messages) do
 			WHHNotifList.RemoveMessage(msg)
 		end
-		messages = {}
 		
 		-- If disabled, return
 		if not options.enabled then 
-			return
+			return {}
 		end
+				
+		-- Search for grp auras
+		if tracked["party"] ~= nil then
 		
-		-- Combat Aura
-		if UnitAffectingCombat("player") then
-			local buffs = GetUnitAuras("player")
-			for k,v in pairs(GetCombatAura()) do
-				if buffs[k] == nil then
-					table.insert(messages, {
-						text = k.." not enabled",
-						priority = 90,
-					})
+			for idx = 1,table.getn(PartyUnitList) do
+				
+				if UnitExists(PartyUnitList[idx]) then
+					local auraList = GetUnitAuraList(PartyUnitList[idx])
+
+					for i, aura in ipairs(tracked["party"]) do
+						if not InList(auraList, aura) then
+							local msg = { 
+								text = aura.." not found on ".. UnitName(PartyUnitList[idx]),
+								priority = options.priority
+							}			
+							table.insert(messages,msg)
+							WHHNotifList.AddMessage(msg)
+						end
+					end
 				end
 			end
 		end
 		
-		-- Group Aura
-		local units = { "player", "party1", "party2", "party3", "party4"}
-		for idx = 1,table.getn(units) do
-		
-			local name = UnitName(units[idx])			
-		
-			if not name then 
-				break
-			end
-			
-			local buffs = GetUnitAuras(units[idx])
-			
-			for k,v in pairs(GetGroupAura()) do
-				if buffs[k] == nil then
-					table.insert(messages, {
-						text = k.." not enabled on ".. name,
-						priority = 90,
-					})
+		-- Combat Auras
+		if tracked["combat"] ~= nil then
+			if UnitAffectingCombat("player") then
+				local auraList = GetUnitAuras("player")
+				for i, aura in ipairs(tracked["combat"]) do
+					if not InList(auraList, aura) then 
+						local msg = { 
+							text = aura.." not found on ".. UnitName("player"),
+							priority = options.priority
+						}			
+						table.insert(messages,msg)
+						WHHNotifList.AddMessage(msg)
+					end
 				end
 			end
-		end
-		
-		-- Show messages
-		for i=1, table.getn(messages) do
-			WHHNotifList.AddMessage(messages[i])
 		end
 	end
 	
+	local function CfgUpdate()
+		tracked = {}
+		if options.enabled then
+			for k, entry in ipairs(options.auraList) do
+				local auraName = entry[1]
+				local autaType = string.lower(entry[2])
+				if tracked[autaType] == nil then
+					tracked[autaType] = {}
+				end
+				table.insert(tracked[autaType], auraName)
+			end
+		end
+		Update()
+	end
 	
 	local function Init()
 		frame = CreateFrame("Frame")
 		frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 		frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 		frame:RegisterEvent("UNIT_AURA")
+		frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 		
 		frame:SetScript("OnEvent", Update)
 		
 		options = WHHOptions.char.auraTracker
 		
-		Update()
+		CfgUpdate()
+		
 	end
 
 	
 	WHHAuraTracker.Init = Init
 	WHHAuraTracker.Update = Update
+	WHHAuraTracker.CfgUpdate = CfgUpdate
 end
 
 return WHHAuraTracker
